@@ -167,7 +167,6 @@
 		B83AA5741D38E728007905B4 /* SegmentPageVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = B83AA5731D38E728007905B4 /* SegmentPageVC.swift */; };
 		B83AA5761D38E98A007905B4 /* RequestOverviewVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = B83AA5751D38E98A007905B4 /* RequestOverviewVC.swift */; };
 		B83D3E791D2BA689007655CE /* Event.swift in Sources */ = {isa = PBXBuildFile; fileRef = B83D3E781D2BA689007655CE /* Event.swift */; };
-		B83D3E7D1D2BA8C8007655CE /* Receipt.swift in Sources */ = {isa = PBXBuildFile; fileRef = B83D3E7C1D2BA8C8007655CE /* Receipt.swift */; };
 		B84551401CF83D07005779CD /* HomeVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = B845513F1CF83D07005779CD /* HomeVC.swift */; };
 		B84551421CF878BD005779CD /* ConfigGroupChooseVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = B84551411CF878BD005779CD /* ConfigGroupChooseVC.swift */; };
 		B86B08EC1D17F85800613014 /* ShadowPath.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B86B08E91D17F84900613014 /* ShadowPath.framework */; };
@@ -178,7 +177,6 @@
 		B87B980A1D3B64BE00FA66BF /* RequestEventRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = B87B98091D3B64BE00FA66BF /* RequestEventRow.swift */; };
 		B88096B01D0579F5008BEB87 /* CloudDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B88096AF1D0579F5008BEB87 /* CloudDetailViewController.swift */; };
 		B88096B21D0652F0008BEB87 /* RuleCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B88096B11D0652F0008BEB87 /* RuleCell.swift */; };
-		B8822CCD1D2AA70A00AD252C /* Receipt.m in Sources */ = {isa = PBXBuildFile; fileRef = B8822CCC1D2AA70A00AD252C /* Receipt.m */; };
 		B8822CD31D2B81C400AD252C /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B8822CD11D2B81C400AD252C /* libcrypto.a */; };
 		B8822CD41D2B81C400AD252C /* libssl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B8822CD21D2B81C400AD252C /* libssl.a */; };
 		B8822CD61D2B861E00AD252C /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B8822CD51D2B861E00AD252C /* StoreKit.framework */; };
@@ -851,7 +849,6 @@
 		B83AA5731D38E728007905B4 /* SegmentPageVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SegmentPageVC.swift; sourceTree = "<group>"; };
 		B83AA5751D38E98A007905B4 /* RequestOverviewVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RequestOverviewVC.swift; sourceTree = "<group>"; };
 		B83D3E781D2BA689007655CE /* Event.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Event.swift; sourceTree = "<group>"; };
-		B83D3E7C1D2BA8C8007655CE /* Receipt.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Receipt.swift; sourceTree = "<group>"; };
 		B845513F1CF83D07005779CD /* HomeVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HomeVC.swift; sourceTree = "<group>"; };
 		B84551411CF878BD005779CD /* ConfigGroupChooseVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConfigGroupChooseVC.swift; sourceTree = "<group>"; };
 		B86B08E31D17F84900613014 /* ShadowPath.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ShadowPath.xcodeproj; path = Library/ShadowPath/ShadowPath.xcodeproj; sourceTree = SOURCE_ROOT; };
@@ -861,8 +858,6 @@
 		B87B98091D3B64BE00FA66BF /* RequestEventRow.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RequestEventRow.swift; sourceTree = "<group>"; };
 		B88096AF1D0579F5008BEB87 /* CloudDetailViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CloudDetailViewController.swift; sourceTree = "<group>"; };
 		B88096B11D0652F0008BEB87 /* RuleCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RuleCell.swift; sourceTree = "<group>"; };
-		B8822CCB1D2AA70A00AD252C /* Receipt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Receipt.h; sourceTree = "<group>"; };
-		B8822CCC1D2AA70A00AD252C /* Receipt.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Receipt.m; sourceTree = "<group>"; };
 		B8822CD11D2B81C400AD252C /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = "Library/ShadowPath/ShadowPath/shadowsocks-libev/libopenssl/lib/libcrypto.a"; sourceTree = "<group>"; };
 		B8822CD21D2B81C400AD252C /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = "Library/ShadowPath/ShadowPath/shadowsocks-libev/libopenssl/lib/libssl.a"; sourceTree = "<group>"; };
 		B8822CD51D2B861E00AD252C /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
@@ -1098,9 +1093,6 @@
 				B87A04391D193ABC001132F2 /* LoggerUtils.swift */,
 				B8319A091D1B975C001E50C2 /* RegexUtils.swift */,
 				B83D3E781D2BA689007655CE /* Event.swift */,
-				B83D3E7C1D2BA8C8007655CE /* Receipt.swift */,
-				B8822CCB1D2AA70A00AD252C /* Receipt.h */,
-				B8822CCC1D2AA70A00AD252C /* Receipt.m */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -2824,7 +2816,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				B83AA5701D38E6F7007905B4 /* RequestDetailVC.swift in Sources */,
-				B83D3E7D1D2BA8C8007655CE /* Receipt.swift in Sources */,
 				B8CCC6DD1CFD5D5D000E7E2E /* CollectionViewController.swift in Sources */,
 				B88096B21D0652F0008BEB87 /* RuleCell.swift in Sources */,
 				9B17F8F01C533BBF00679FCB /* Color.swift in Sources */,
@@ -2857,7 +2848,6 @@
 				9B76EEB91C911CBF002BF5D1 /* ProxySelectionViewController.swift in Sources */,
 				9BF303461CC8A1F60096588E /* LogDetailViewController.swift in Sources */,
 				9B1D9B7B1CA4C45F0078D814 /* HUDUtils.swift in Sources */,
-				B8822CCD1D2AA70A00AD252C /* Receipt.m in Sources */,
 				B8CCC6E11CFDCADC000E7E2E /* RuleSetListViewController.swift in Sources */,
 				9B2290FF1C8E5B9600EEC901 /* DataInitializer.swift in Sources */,
 				9BB62FA31C8FFC1D002ADC54 /* RuleSetConfigurationViewController.swift in Sources */,
