@@ -8,7 +8,7 @@
 
 import RealmSwift
 
-public enum RuleSetError: ErrorType {
+public enum RuleSetError: Error {
     case InvalidRuleSet
     case EmptyName
     case NameAlreadyExists
@@ -30,14 +30,14 @@ extension RuleSetError: CustomStringConvertible {
 }
 
 public final class RuleSet: BaseModel {
-    public dynamic var editable = true
-    public dynamic var name = ""
-    public dynamic var remoteUpdatedAt: NSTimeInterval = NSDate().timeIntervalSince1970
-    public dynamic var desc = ""
-    public dynamic var ruleCount = 0
-    public dynamic var rulesJSON = ""
-    public dynamic var isSubscribe = false
-    public dynamic var isOfficial = false
+    @objc public dynamic var editable = true
+    @objc public dynamic var name = ""
+    @objc public dynamic var remoteUpdatedAt: TimeInterval = NSDate().timeIntervalSince1970
+    @objc public dynamic var desc = ""
+    @objc public dynamic var ruleCount = 0
+    @objc public dynamic var rulesJSON = ""
+    @objc public dynamic var isSubscribe = false
+    @objc public dynamic var isOfficial = false
 
     private var cachedRules: [Rule]? = nil
 
@@ -79,30 +79,32 @@ public final class RuleSet: BaseModel {
 
     public func insertRule(rule: Rule, atIndex index: Int) {
         var newRules = rules
-        newRules.insert(rule, atIndex: index)
+        newRules.insert(rule, at: index)
         rules = newRules
     }
 
     public func removeRule(atIndex index: Int) {
         var newRules = rules
-        newRules.removeAtIndex(index)
+        newRules.remove(at: index)
         rules = newRules
     }
 
     public func move(fromIndex: Int, toIndex: Int) {
         var newRules = rules
         let rule = newRules[fromIndex]
-        newRules.removeAtIndex(fromIndex)
-        insertRule(rule, atIndex: toIndex)
+        newRules.remove(at: fromIndex)
+        insertRule(rule: rule, atIndex: toIndex)
         rules = newRules
     }
 }
 
 extension RuleSet {
-    
+
+    /*
     public override static func indexedProperties() -> [String] {
         return ["name"]
     }
+     */
     
 }
 
@@ -114,8 +116,8 @@ extension RuleSet {
             throw RuleSetError.InvalidRuleSet
         }
         self.name = name
-        if realm.objects(RuleSet).filter("name = '\(name)'").first != nil {
-            self.name = "\(name) \(RuleSet.dateFormatter.stringFromDate(NSDate()))"
+        if realm.objects(RuleSet.self).filter("name = '\(name)'").first != nil {
+            self.name = "\(name) \(RuleSet.dateFormatter.string(from: NSDate() as Date))"
         }
         guard let rulesStr = dictionary["rules"] as? [String] else {
             throw RuleSetError.InvalidRuleSet

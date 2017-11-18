@@ -8,7 +8,7 @@
 
 import RealmSwift
 
-public enum ConfigurationGroupError: ErrorType {
+public enum ConfigurationGroupError: Error {
     case InvalidConfigurationGroup
     case EmptyName
     case NameAlreadyExists
@@ -31,10 +31,10 @@ extension ConfigurationGroupError: CustomStringConvertible {
 
 
 public class ConfigurationGroup: BaseModel {
-    public dynamic var editable = true
-    public dynamic var name = ""
-    public dynamic var defaultToProxy = true
-    public dynamic var dns = ""
+    @objc public dynamic var editable = true
+    @objc public dynamic var name = ""
+    @objc public dynamic var defaultToProxy = true
+    @objc public dynamic var dns = ""
     public let proxies = List<Proxy>()
     public let ruleSets = List<RuleSet>()
     
@@ -61,16 +61,16 @@ extension ConfigurationGroup {
             throw ConfigurationGroupError.InvalidConfigurationGroup
         }
         self.name = name
-        if realm.objects(RuleSet).filter("name = '\(name)'").first != nil {
-            self.name = "\(name) \(ConfigurationGroup.dateFormatter.stringFromDate(NSDate()))"
+        if realm.objects(RuleSet.self).filter("name = '\(name)'").first != nil {
+            self.name = "\(name) \(ConfigurationGroup.dateFormatter.string(from: (NSDate() as Date)))"
         }
-        if let proxyName = dictionary["proxy"] as? String, proxy = realm.objects(Proxy).filter("name = '\(proxyName)'").first {
+        if let proxyName = dictionary["proxy"] as? String, let proxy = realm.objects(Proxy.self).filter("name = '\(proxyName)'").first {
             self.proxies.removeAll()
             self.proxies.append(proxy)
         }
         if let ruleSetsName = dictionary["ruleSets"] as? [String] {
             for ruleSetName in ruleSetsName {
-                if let ruleSet = realm.objects(RuleSet).filter("name = '\(ruleSetName)'").first {
+                if let ruleSet = realm.objects(RuleSet.self).filter("name = '\(ruleSetName)'").first {
                     self.ruleSets.append(ruleSet)
                 }
             }
@@ -82,7 +82,7 @@ extension ConfigurationGroup {
             self.dns = dns
         }
         if let dns = dictionary["dns"] as? [String] {
-            self.dns = dns.joinWithSeparator(",")
+            self.dns = dns.joined(separator: ",")
         }
     }
 

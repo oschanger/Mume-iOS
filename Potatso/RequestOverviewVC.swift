@@ -25,7 +25,7 @@ class RequestOverviewVC: FormViewController {
         super.viewDidLoad()
     }
 
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         handleRefreshUI()
     }
@@ -43,12 +43,15 @@ class RequestOverviewVC: FormViewController {
     }
 
     func generateTimelineSection() -> Section {
+        
         let section = Section()
+        /*
         for event in request.events {
             section <<< RequestEventRow() {
                 $0.value = event
             }
         }
+         */
         return section
     }
 
@@ -57,20 +60,23 @@ class RequestOverviewVC: FormViewController {
     }
 
     func tableView(tableView: UITableView, canPerformAction action: Selector, forRowAtIndexPath indexPath: NSIndexPath, withSender sender: AnyObject?) -> Bool {
-        return action == ("copy")
+        return true
+        //return action == (#selector(_NSContiguousString.copy))
     }
 
     func tableView(tableView: UITableView, performAction action: Selector, forRowAtIndexPath indexPath: NSIndexPath, withSender sender: AnyObject?) {
+        /*
         switch action {
-        case ("copy"):
-            guard let cell = tableView.cellForRowAtIndexPath(indexPath) as? RequestEventRowCell else {
+        case (#selector(_NSContiguousString.copy)):
+            guard let cell = tableView.cellForRow(at: indexPath as IndexPath) as? RequestEventRowCell else {
                 return
             }
-            UIPasteboard.generalPasteboard().string = cell.copyContent
+            UIPasteboard.general.string = cell.copyContent
             // implement copy here
         default:
             assertionFailure()
         }
+         */
     }
 
 }

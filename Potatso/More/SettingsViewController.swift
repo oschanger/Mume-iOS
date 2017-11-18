@@ -34,7 +34,7 @@ class SettingsViewController: FormViewController, MFMailComposeViewControllerDel
         navigationItem.title = "More".localized()
     }
 
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         generateForm()
     }
@@ -108,8 +108,8 @@ class SettingsViewController: FormViewController, MFMailComposeViewControllerDel
             <<< LabelRow() {
                 $0.title = "Logs".localized()
                 }.cellSetup({ (cell, row) -> () in
-                    cell.accessoryType = .DisclosureIndicator
-                    cell.selectionStyle = .Default
+                    cell.accessoryType = .disclosureIndicator
+                    cell.selectionStyle = .default
                 }).onCellSelection({ [unowned self](cell, row) -> () in
                     cell.setSelected(false, animated: true)
                     self.navigationController?.pushViewController(DashboardVC(), animated: true)
@@ -144,41 +144,41 @@ class SettingsViewController: FormViewController, MFMailComposeViewControllerDel
 
     func showUserManual() {
         let url = "http://mumevpn.com/ios/"
-        let vc = BaseSafariViewController(URL: NSURL(string: url)!, entersReaderIfAvailable: false)
+        let vc = BaseSafariViewController(url: URL(string: url)!, entersReaderIfAvailable: false)
         vc.delegate = self
-        presentViewController(vc, animated: true, completion: nil)
+        present(vc, animated: true, completion: nil)
     }
 
     func followTwitter() {
-        UIApplication.sharedApplication().openURL(NSURL(string: "https://twitter.com/intent/user?screen_name=mumevpn")!)
+        UIApplication.shared.openURL(URL(string: "https://twitter.com/intent/user?screen_name=mumevpn")!)
     }
 
     func joinTelegramGroup() {
-        UIApplication.sharedApplication().openURL(NSURL(string: "https://telegram.me/mumevpn")!)
+        UIApplication.shared.openURL(URL(string: "https://telegram.me/mumevpn")!)
     }
 
     func shareWithFriends() {
         var shareItems: [AnyObject] = [self]
-        shareItems.append("Mume: https://itunes.apple.com/app/id1144787928")
+        shareItems.append("Mume: https://itunes.apple.com/app/id1144787928" as AnyObject)
         shareItems.append(UIImage(named: "AppIcon60x60")!)
         let shareVC = UIActivityViewController(activityItems: shareItems, applicationActivities: nil)
-        self.presentViewController(shareVC, animated: true, completion: nil)
+        self.present(shareVC, animated: true, completion: nil)
     }
 
-    @objc func safariViewControllerDidFinish(controller: SFSafariViewController) {
-        controller.dismissViewControllerAnimated(true, completion: nil)
+    @objc func safariViewControllerDidFinish(_ controller: SFSafariViewController) {
+        controller.dismiss(animated: true, completion: nil)
     }
     
 // UIActivityItemSource
     @objc func activityViewControllerPlaceholderItem(activityViewController: UIActivityViewController) -> AnyObject {
-        return ""
+        return "" as AnyObject
     }
     
     @objc func activityViewController(activityViewController: UIActivityViewController, itemForActivityType activityType: String) -> AnyObject? {
-        if activityType.containsString("com.tencent") {
-            return "Mume iOS: https://liruqi.github.io/Mume-iOS/"
+        if activityType.contains("com.tencent") {
+            return "Mume iOS: https://liruqi.github.io/Mume-iOS/" as AnyObject
         }
-        return "Mume: https://itunes.apple.com/app/id1144787928"
+        return "Mume: https://itunes.apple.com/app/id1144787928" as AnyObject
     }
     
     func activityViewController(activityViewController: UIActivityViewController, subjectForActivityType activityType: String?) -> String {

@@ -20,12 +20,12 @@ class ProxyListViewController: FormViewController {
     var cloudProxies: [Proxy] = []
 
     let allowNone: Bool
-    let chooseCallback: (Proxy? -> Void)?
+    let chooseCallback: ((Proxy?) -> Void)?
 
-    init(allowNone: Bool = false, chooseCallback: (Proxy? -> Void)? = nil) {
+    init(allowNone: Bool = false, chooseCallback: ((Proxy?) -> Void)? = nil) {
         self.chooseCallback = chooseCallback
         self.allowNone = allowNone
-        super.init(style: .Plain)
+        super.init(style: .plain)
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -37,7 +37,7 @@ class ProxyListViewController: FormViewController {
         
         API.getProxySets() { (response) in
             for dic in response {
-                if let proxy = try? Proxy(dictionary: dic) {
+                if let proxy = try? Proxy(dictionary: dic as [String : AnyObject]) {
                     self.cloudProxies.append(proxy)
                 }
             }
@@ -45,30 +45,31 @@ class ProxyListViewController: FormViewController {
         }
     }
     
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationItem.title = "Proxy".localized()
-        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .Add, target: self, action: #selector(add))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(add))
         reloadData()
     }
 
-    func add() {
+    @objc func add() {
         let vc = ProxyConfigurationViewController()
         navigationController?.pushViewController(vc, animated: true)
     }
 
     func reloadData() {
-        proxies = DBUtils.allNotDeleted(Proxy.self, sorted: "createAt").map({ $0 })
+        proxies = DBUtils.allNotDeleted(type: Proxy.self, sorted: "createAt").map({ $0 })
         if allowNone {
-            proxies.insert(nil, atIndex: 0)
+            proxies.insert(nil, at: 0)
         }
         form.delegate = nil
         form.removeAll()
         let section = self.cloudProxies.count > 0 ? Section("Local".localized()) : Section()
         for proxy in proxies {
             section
+                /*
                 <<< ProxyRow () {
-                    $0.value = proxy
+                    //$0.value = proxy
                 }.cellSetup({ (cell, row) -> () in
                     cell.selectionStyle = .None
                 }).onCellSelection({ [unowned self] (cell, row) in
@@ -83,6 +84,7 @@ class ProxyListViewController: FormViewController {
                         }
                     }
                 })
+ */
         }
         form +++ section
         
@@ -90,8 +92,9 @@ class ProxyListViewController: FormViewController {
             let cloudSection = Section("Cloud".localized())
             for proxy in cloudProxies {
                 cloudSection
+                    /*
                     <<< ProxyRow () {
-                        $0.value = proxy
+                        //$0.value = proxy
                         }.cellSetup({ (cell, row) -> () in
                             cell.selectionStyle = .None
                         }).onCellSelection({ [weak self] (cell, row) in
@@ -108,6 +111,7 @@ class ProxyListViewController: FormViewController {
                                 }
                             }
                             })
+ */
             }
             form +++ cloudSection
         }
@@ -129,24 +133,27 @@ class ProxyListViewController: FormViewController {
 
     func tableView(tableView: UITableView, editingStyleForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCellEditingStyle {
         if indexPath.section == 0 {
-            return .Delete
+            return .delete
         }
-        return .None
+        return .none
     }
 
-    func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
-        if editingStyle == .Delete {
+    func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: IndexPath) {
+        if editingStyle == .delete {
+            /*
             guard indexPath.row < proxies.count, let item = (form[indexPath] as? ProxyRow)?.value else {
                 return
             }
+ 
             do {
-                try DBUtils.hardDelete(item.uuid, type: Proxy.self)
-                proxies.removeAtIndex(indexPath.row)
+                try DBUtils.hardDelete(id: item.uuid, type: Proxy.self)
+                proxies.remove(at: indexPath.row)
                 form[indexPath].hidden = true
                 form[indexPath].evaluateHidden()
             }catch {
-                self.showTextHUD("\("Fail to delete item".localized()): \((error as NSError).localizedDescription)", dismissAfterDelay: 1.5)
+                self.showTextHUD(text: "\("Fail to delete item".localized()): \((error as NSError).localizedDescription)", dismissAfterDelay: 1.5)
             }
+ */
         }
     }
 

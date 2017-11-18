@@ -9,7 +9,7 @@
 import Foundation
 
 protocol HomePresenterProtocol: class {
-    func handleRefreshUI(error: ErrorType?)
+    func handleRefreshUI(error: Error?)
 }
 
 class HomePresenter: NSObject {
@@ -30,15 +30,15 @@ class HomePresenter: NSObject {
 
     override init() {
         super.init()
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(onVPNStatusChanged), name: kProxyServiceVPNStatusNotification, object: nil)
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(showAddConfigGroup), name: HomePresenter.kAddConfigGroup, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(onVPNStatusChanged), name: NSNotification.Name(rawValue: kProxyServiceVPNStatusNotification), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(showAddConfigGroup), name: NSNotification.Name(rawValue: HomePresenter.kAddConfigGroup), object: nil)
         CurrentGroupManager.shared.onChange = { group in
-            self.delegate?.handleRefreshUI(nil)
+            self.delegate?.handleRefreshUI(error: nil)
         }
     }
 
     deinit {
-        NSNotificationCenter.defaultCenter().removeObserver(self)
+        NotificationCenter.default.removeObserver(self)
     }
 
     func bindToVC(vc: UIViewController) {
@@ -48,123 +48,123 @@ class HomePresenter: NSObject {
     // MARK: - Actions
 
     func switchVPN() {
-        VPN.switchVPN(group) { [unowned self] (error) in
+        VPN.switchVPN(group: group) { [unowned self] (error) in
             if let error = error {
-                Alert.show(self.vc, message: "\("Fail to switch VPN.".localized()) (\(error))")
-                self.delegate?.handleRefreshUI(error)
+                Alert.show(vc: self.vc, message: "\("Fail to switch VPN.".localized()) (\(error))")
+                self.delegate?.handleRefreshUI(error: error)
             }
         }
     }
 
-    func chooseConfigGroups() {
+    @objc func chooseConfigGroups() {
         ConfigGroupChooseManager.shared.show()
     }
 
-    func showAddConfigGroup() {
+    @objc func showAddConfigGroup() {
         var urlTextField: UITextField?
-        let alert = UIAlertController(title: "Add Config Group".localized(), message: nil, preferredStyle: .Alert)
-        alert.addTextFieldWithConfigurationHandler { (textField) in
+        let alert = UIAlertController(title: "Add Config Group".localized(), message: nil, preferredStyle: .alert)
+        alert.addTextField { (textField) in
             textField.placeholder = "Name".localized()
             urlTextField = textField
         }
-        alert.addAction(UIAlertAction(title: "OK".localized(), style: .Default, handler: { (action) in
+        alert.addAction(UIAlertAction(title: "OK".localized(), style: .default, handler: { (action) in
             if let input = urlTextField?.text {
                 do {
-                    try self.addEmptyConfigGroup(input)
+                    try self.addEmptyConfigGroup(name: input)
                 }catch{
-                    Alert.show(self.vc, message: "\("Failed to add config group".localized()): \(error)")
+                    Alert.show(vc: self.vc, message: "\("Failed to add config group".localized()): \(error)")
                 }
             }
         }))
-        alert.addAction(UIAlertAction(title: "CANCEL".localized(), style: .Cancel, handler: nil))
-        vc.presentViewController(alert, animated: true, completion: nil)
+        alert.addAction(UIAlertAction(title: "CANCEL".localized(), style: .cancel, handler: nil))
+        vc.present(alert, animated: true, completion: nil)
     }
 
     func addEmptyConfigGroup(name: String) throws {
-        let trimmedName = name.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
+        let trimmedName = name.trimmingCharacters(in: NSCharacterSet.whitespaces)
         if trimmedName.characters.count == 0 {
             throw "Name can't be empty".localized()
         }
         let group = ConfigurationGroup()
         group.name = trimmedName
-        try DBUtils.add(group)
-        CurrentGroupManager.shared.setConfigGroupId(group.uuid)
+        try DBUtils.add(object: group)
+        CurrentGroupManager.shared.setConfigGroupId(id: group.uuid)
     }
 
     func addRuleSet() {
         let destVC: UIViewController
-        if defaultRealm.objects(RuleSet).count == 0 {
+        if defaultRealm.objects(RuleSet.self).count == 0 {
             destVC = RuleSetConfigurationViewController() { [unowned self] ruleSet in
-                self.appendRuleSet(ruleSet)
+                self.appendRuleSet(ruleSet: ruleSet)
             }
         }else {
             destVC = RuleSetListViewController { [unowned self] ruleSet in
-                self.appendRuleSet(ruleSet)
+                self.appendRuleSet(ruleSet: ruleSet)
             }
         }
         vc.navigationController?.pushViewController(destVC, animated: true)
     }
 
     func appendRuleSet(ruleSet: RuleSet?) {
-        guard let ruleSet = ruleSet where !group.ruleSets.contains(ruleSet) else {
+        guard let ruleSet = ruleSet, !group.ruleSets.contains(ruleSet) else {
             return
         }
         do {
             try ConfigurationGroup.appendRuleSet(forGroupId: group.uuid, rulesetId: ruleSet.uuid)
-            self.delegate?.handleRefreshUI(nil)
+            self.delegate?.handleRefreshUI(error: nil)
         }catch {
-            self.vc.showTextHUD("\("Fail to add ruleset".localized()): \((error as NSError).localizedDescription)", dismissAfterDelay: 1.5)
+            self.vc.showTextHUD(text: "\("Fail to add ruleset".localized()): \((error as NSError).localizedDescription)", dismissAfterDelay: 1.5)
         }
     }
 
     func updateDNS(dnsString: String) {
         var dns: String = ""
-        let trimmedDNSString = dnsString.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
+        let trimmedDNSString = dnsString.trimmingCharacters(in: .whitespaces)
         if trimmedDNSString.characters.count > 0 {
-            let dnsArray = dnsString.componentsSeparatedByString(",").map({ $0.componentsSeparatedByString("，") }).flatMap({ $0 }).map({ $0.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())}).filter({ $0.characters.count > 0 })
+            let dnsArray = dnsString.components(separatedBy: ",").map({ $0.components(separatedBy: "，") }).flatMap({ $0 }).map({ $0.trimmingCharacters(in: .whitespaces)}).filter({ $0.characters.count > 0 })
             let ipRegex = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$";
             guard let regex = try? Regex(ipRegex) else {
                 fatalError()
             }
-            let valids = dnsArray.map({ regex.test($0) })
-            let valid = valids.reduce(true, combine: { $0 && $1 })
+            let valids = dnsArray.map({ regex.test(input: $0) })
+            let valid = valids.reduce(true, { $0 && $1 })
             if !valid {
                 dns = ""
-                Alert.show(self.vc, title: "Invalid DNS".localized(), message: "DNS should be valid ip addresses (separated by commas if multiple). e.g.: 8.8.8.8,8.8.4.4".localized())
+                Alert.show(vc: self.vc, title: "Invalid DNS".localized(), message: "DNS should be valid ip addresses (separated by commas if multiple). e.g.: 8.8.8.8,8.8.4.4".localized())
             }else {
-                dns = dnsArray.joinWithSeparator(",")
+                dns = dnsArray.joined(separator: ",")
             }
         }
         do {
             try ConfigurationGroup.changeDNS(forGroupId: group.uuid, dns: dns)
         }catch {
-            self.vc.showTextHUD("\("Fail to change dns".localized()): \((error as NSError).localizedDescription)", dismissAfterDelay: 1.5)
+            self.vc.showTextHUD(text: "\("Fail to change dns".localized()): \((error as NSError).localizedDescription)", dismissAfterDelay: 1.5)
         }
     }
 
-    func onVPNStatusChanged() {
-        self.delegate?.handleRefreshUI(nil)
+    @objc func onVPNStatusChanged() {
+        self.delegate?.handleRefreshUI(error: nil)
     }
 
     func changeGroupName() {
         var urlTextField: UITextField?
-        let alert = UIAlertController(title: "Change Name".localized(), message: nil, preferredStyle: .Alert)
-        alert.addTextFieldWithConfigurationHandler { (textField) in
+        let alert = UIAlertController(title: "Change Name".localized(), message: nil, preferredStyle: .alert)
+        alert.addTextField { (textField) in
             textField.placeholder = "Input New Name".localized()
             urlTextField = textField
         }
-        alert.addAction(UIAlertAction(title: "OK".localized(), style: .Default, handler: { [unowned self] (action) in
+        alert.addAction(UIAlertAction(title: "OK".localized(), style: .default, handler: { [unowned self] (action) in
             if let newName = urlTextField?.text {
                 do {
                     try ConfigurationGroup.changeName(forGroupId: self.group.uuid, name: newName)
                 }catch {
-                    Alert.show(self.vc, title: "Failed to change name", message: "\(error)")
+                    Alert.show(vc: self.vc, title: "Failed to change name", message: "\(error)")
                 }
-                self.delegate?.handleRefreshUI(nil)
+                self.delegate?.handleRefreshUI(error: nil)
             }
         }))
-        alert.addAction(UIAlertAction(title: "CANCEL".localized(), style: .Cancel, handler: nil))
-        vc.presentViewController(alert, animated: true, completion: nil)
+        alert.addAction(UIAlertAction(title: "CANCEL".localized(), style: .cancel, handler: nil))
+        vc.present(alert, animated: true, completion: nil)
     }
 
 }
@@ -174,10 +174,10 @@ class CurrentGroupManager {
     static let shared = CurrentGroupManager()
 
     private init() {
-        _groupUUID = Manager.sharedManager.defaultConfigGroup.uuid
+        _groupUUID = VPNManager.sharedManager.defaultConfigGroup.uuid
     }
 
-    var onChange: (ConfigurationGroup? -> Void)?
+    var onChange: ((ConfigurationGroup?) -> Void)?
 
     private var _groupUUID: String {
         didSet(o) {
@@ -186,20 +186,20 @@ class CurrentGroupManager {
     }
 
     var group: ConfigurationGroup {
-        if let group = DBUtils.get(_groupUUID, type: ConfigurationGroup.self) {
+        if let group = DBUtils.get(uuid: _groupUUID, type: ConfigurationGroup.self) {
             return group
         } else {
-            let defaultGroup = Manager.sharedManager.defaultConfigGroup
-            setConfigGroupId(defaultGroup.uuid)
+            let defaultGroup = VPNManager.sharedManager.defaultConfigGroup
+            setConfigGroupId(id: defaultGroup.uuid)
             return defaultGroup
         }
     }
 
     func setConfigGroupId(id: String) {
-        if let _ = DBUtils.get(id, type: ConfigurationGroup.self) {
+        if let _ = DBUtils.get(uuid: id, type: ConfigurationGroup.self) {
             _groupUUID = id
         } else {
-            _groupUUID = Manager.sharedManager.defaultConfigGroup.uuid
+            _groupUUID = VPNManager.sharedManager.defaultConfigGroup.uuid
         }
     }
     

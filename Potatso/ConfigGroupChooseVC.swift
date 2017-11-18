@@ -25,11 +25,11 @@ class ConfigGroupChooseManager {
 
     func show() {
         if window == nil {
-            window = ConfigGroupChooseWindow(frame: UIScreen.mainScreen().bounds)
-            window?.backgroundColor = UIColor.clearColor()
+            window = ConfigGroupChooseWindow(frame: UIScreen.main.bounds)
+            window?.backgroundColor = UIColor.clear
             window?.makeKeyAndVisible()
             window?.chooseVC.view.frame = CGRect(x: 0, y: window!.frame.height, width: window!.frame.width, height: window!.frame.height)
-            UIView.animateWithDuration(0.3) {
+            UIView.animate(withDuration: 0.3) {
                 self.window?.backgroundColor = "000".color.alpha(0.5)
                 self.window?.chooseVC.view.frame.origin = CGPoint(x: 0, y: 0)
             }
@@ -38,11 +38,11 @@ class ConfigGroupChooseManager {
 
     func hide() {
         if let window = window  {
-            UIView.animateWithDuration(0.3, animations: {
+            UIView.animate(withDuration: 0.3, animations: {
                 window.chooseVC.view.frame.origin = CGPoint(x: 0, y: window.frame.height)
             }, completion: { (finished) in
                 window.chooseVC.view.removeFromSuperview()
-                self.window?.hidden = true
+                self.window?.isHidden = true
                 self.window = nil
             })
         }
@@ -57,15 +57,15 @@ class ConfigGroupChooseWindow: UIWindow {
     override init(frame: CGRect) {
         super.init(frame: frame)
         addSubview(chooseVC.view)
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(ConfigGroupChooseWindow.onStatusBarFrameChange), name: UIApplicationDidChangeStatusBarFrameNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(ConfigGroupChooseWindow.onStatusBarFrameChange), name: NSNotification.Name.UIApplicationDidChangeStatusBarFrame, object: nil)
     }
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func onStatusBarFrameChange() {
-        frame = UIScreen.mainScreen().bounds
+    @objc func onStatusBarFrameChange() {
+        frame = UIScreen.main.bounds
     }
 
 }
@@ -77,10 +77,10 @@ class ConfigGroupChooseVC: UIViewController, UITableViewDataSource, UITableViewD
     var gesture: UITapGestureRecognizer?
     var token: RLMNotificationToken?
 
-    override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: NSBundle?) {
-        groups = DBUtils.allNotDeleted(ConfigurationGroup.self, sorted: "createAt")
+    override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
+        groups = DBUtils.allNotDeleted(type: ConfigurationGroup.self, sorted: "createAt")
         super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(onVPNStatusChanged), name: kProxyServiceVPNStatusNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(onVPNStatusChanged), name: NSNotification.Name(rawValue: kProxyServiceVPNStatusNotification), object: nil)
     }
 
     required init?(coder aDecoder: NSCoder) {
@@ -91,16 +91,17 @@ class ConfigGroupChooseVC: UIViewController, UITableViewDataSource, UITableViewD
         super.viewDidLoad()
     }
 
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         updateUI()
-        token = groups.addNotificationBlock { [unowned self] (changed) in
+        /*
+        token = groups.observe { [unowned self] (changed) in
             switch changed {
             case let .Update(_, deletions: deletions, insertions: insertions, modifications: modifications):
                 self.tableView.beginUpdates()
                 defer {
                     self.tableView.endUpdates()
-                    CurrentGroupManager.shared.setConfigGroupId(CurrentGroupManager.shared.group.uuid)
+                    CurrentGroupManager.shared.setConfigGroupId(id: CurrentGroupManager.shared.group.uuid)
                 }
                 self.tableView.deleteRowsAtIndexPaths(deletions.map({ NSIndexPath(forRow: $0, inSection: 0) }), withRowAnimation: .Automatic)
                 self.tableView.insertRowsAtIndexPaths(insertions.map({ NSIndexPath(forRow: $0, inSection: 0) }), withRowAnimation: .Automatic)
@@ -109,14 +110,15 @@ class ConfigGroupChooseVC: UIViewController, UITableViewDataSource, UITableViewD
                 break
             }
         }
+ */
     }
 
-    override func viewWillDisappear(animated: Bool) {
+    override func viewWillDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
-        token?.stop()
+        token?.invalidate()
     }
 
-    func onVPNStatusChanged() {
+    @objc func onVPNStatusChanged() {
         updateUI()
     }
 
@@ -125,72 +127,72 @@ class ConfigGroupChooseVC: UIViewController, UITableViewDataSource, UITableViewD
     }
 
     func showConfigGroup(group: ConfigurationGroup, animated: Bool = true) {
-        CurrentGroupManager.shared.setConfigGroupId(group.uuid)
+        CurrentGroupManager.shared.setConfigGroupId(id: group.uuid)
         ConfigGroupChooseManager.shared.hide()
     }
 
-    func onTap() {
+    @objc func onTap() {
         ConfigGroupChooseManager.shared.hide()
     }
 
     func gestureRecognizer(gestureRecognizer: UIGestureRecognizer, shouldReceiveTouch touch: UITouch) -> Bool {
-        if let view = touch.view where view.isDescendantOfView(tableView){
+        if let view = touch.view, view.isDescendant(of: tableView){
             return false
         }
         return true
     }
 
     // MARK: - TableView DataSource & Delegate
-    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return groups.count + 1
     }
 
-    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+    internal func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         if indexPath.row >= groups.count {
-            let cell = UITableViewCell(style: .Default, reuseIdentifier: HomePresenter.kAddConfigGroup)
+            let cell = UITableViewCell(style: .default, reuseIdentifier: HomePresenter.kAddConfigGroup)
             cell.textLabel?.text = "Add Config Group".localized()
             return cell;
         }
-        let cell = tableView.dequeueReusableCellWithIdentifier(kGroupCellIdentifier, forIndexPath: indexPath) as! ConfigGroupCell
-        cell.config(groups[indexPath.row], hintColor: colors[indexPath.row % colors.count].color )
+        let cell = tableView.dequeueReusableCell(withIdentifier: kGroupCellIdentifier, for: indexPath) as! ConfigGroupCell
+        cell.config(group: groups[indexPath.row], hintColor: colors[indexPath.row % colors.count].color )
         return cell
     }
 
-    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if indexPath.row >= groups.count {
             ConfigGroupChooseManager.shared.hide()
-            NSNotificationCenter.defaultCenter().postNotificationName(HomePresenter.kAddConfigGroup, object: nil)
+            NotificationCenter.default.post(name: NSNotification.Name(rawValue: HomePresenter.kAddConfigGroup), object: nil)
         } else {
-            showConfigGroup(groups[indexPath.row])
+            showConfigGroup(group: groups[indexPath.row])
         }
     }
 
-    func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
+    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
         if indexPath.row >= groups.count {
             return false
         }
         let group = groups[indexPath.row]
-        if group.isDefault && Manager.sharedManager.vpnStatus != .Off {
+        if group.isDefault && VPNManager.sharedManager.vpnStatus != .Off {
             return false
         }
         return groups.count > 1
     }
 
-    func tableView(tableView: UITableView, editingStyleForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCellEditingStyle {
-        return .Delete
+    func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCellEditingStyle {
+        return .delete
     }
 
-    func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
-        if editingStyle == .Delete {
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
             let item: ConfigurationGroup
             guard indexPath.row < groups.count else {
                 return
             }
             item = groups[indexPath.row]
             do {
-                try DBUtils.hardDelete(item.uuid, type: ConfigurationGroup.self)
+                try DBUtils.hardDelete(id: item.uuid, type: ConfigurationGroup.self)
             }catch {
-                self.showTextHUD("\("Fail to delete item".localized()): \((error as NSError).localizedDescription)", dismissAfterDelay: 1.5)
+                self.showTextHUD(text: "\("Fail to delete item".localized()): \((error as NSError).localizedDescription)", dismissAfterDelay: 1.5)
             }
         }
     }
@@ -201,27 +203,27 @@ class ConfigGroupChooseVC: UIViewController, UITableViewDataSource, UITableViewD
         let maxHeight = view.bounds.size.height * 0.7
         let height = min(tableRowHeight, maxHeight)
         let originY = view.bounds.size.height - height
-        tableView.scrollEnabled = (tableRowHeight > maxHeight)
+        tableView.isScrollEnabled = (tableRowHeight > maxHeight)
         tableView.frame = CGRect(x: 0, y: originY, width: view.bounds.size.width, height: height)
     }
 
     override func loadView() {
         super.loadView()
-        view.backgroundColor = UIColor.clearColor()
+        view.backgroundColor = UIColor.clear
         gesture = UITapGestureRecognizer(target: self, action: #selector(onTap))
         gesture?.delegate = self
         view.addGestureRecognizer(gesture!)
         view.addSubview(tableView)
-        tableView.registerClass(ConfigGroupCell.self, forCellReuseIdentifier: kGroupCellIdentifier)
+        tableView.register(ConfigGroupCell.self, forCellReuseIdentifier: kGroupCellIdentifier)
     }
 
     lazy var tableView: UITableView = {
-        let v = UITableView(frame: CGRect.zero, style: .Plain)
+        let v = UITableView(frame: CGRect.zero, style: .plain)
         v.dataSource = self
         v.delegate = self
         v.tableFooterView = UIView()
         v.tableHeaderView = UIView()
-        v.separatorStyle = .SingleLine
+        v.separatorStyle = .singleLine
         v.rowHeight = rowHeight
         return v
     }()

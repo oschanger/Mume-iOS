@@ -16,7 +16,7 @@
 	</array>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.info.liruqi.potatso</string>
+		<string>group.info.cx.potatso</string>
 	</array>
 </dict>
 </plist>

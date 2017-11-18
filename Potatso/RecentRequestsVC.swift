@@ -20,8 +20,8 @@ private let kRecentRequestCachedIdentifier = "requestsCached"
 class RecentRequestsVC: UIViewController, UITableViewDataSource, UITableViewDelegate {
     
     var requests: [Request] = []
-    let wormhole = Manager.sharedManager.wormhole
-    var timer: NSTimer?
+    let wormhole = VPNManager.sharedManager.wormhole
+    var timer: Timer?
     var appear = false
     var stopped = false
     var showingCache = false
@@ -29,34 +29,34 @@ class RecentRequestsVC: UIViewController, UITableViewDataSource, UITableViewDele
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationItem.title = "Recent Requests".localized()
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(onVPNStatusChanged), name: kProxyServiceVPNStatusNotification, object: nil)
-        wormhole.listenForMessageWithIdentifier("tunnelConnectionRecords") { [unowned self](response) in
+        NotificationCenter.default.addObserver(self, selector: #selector(onVPNStatusChanged), name: NSNotification.Name(rawValue: kProxyServiceVPNStatusNotification), object: nil)
+        wormhole.listenForMessage(withIdentifier: "tunnelConnectionRecords") { [unowned self](response) in
             self.tableView.pullToRefreshView?.stopAnimating()
-            self.updateUI(response as? String)
-            Potatso.sharedUserDefaults().setObject(response as? String, forKey: kRecentRequestCachedIdentifier)
+            self.updateUI(requestString: response as? String)
+            Potatso.sharedUserDefaults().set(response as? String, forKey: kRecentRequestCachedIdentifier)
             Potatso.sharedUserDefaults().synchronize()
             return
         }
-        self.updateUI(Potatso.sharedUserDefaults().stringForKey(kRecentRequestCachedIdentifier))
-        if Manager.sharedManager.vpnStatus == .Off {
+        self.updateUI(requestString: Potatso.sharedUserDefaults().string(forKey: kRecentRequestCachedIdentifier))
+        if VPNManager.sharedManager.vpnStatus == .Off {
             showingCache = true
         }
     }
     
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         appear = true
         onVPNStatusChanged()
-        tableView.addPullToRefreshWithActionHandler( { [weak self] in
+        tableView.addPullToRefresh( actionHandler: { [weak self] in
             self?.refresh()
             })
         tableView.triggerPullToRefresh()
     }
     
     func refresh() {
-        let on = [VPNStatus.On, VPNStatus.Connecting].contains(Manager.sharedManager.vpnStatus)
+        let on = [VPNStatus.On, VPNStatus.Connecting].contains(VPNManager.sharedManager.vpnStatus)
         if on {
-            wormhole.passMessageObject("", identifier: "getTunnelConnectionRecords")
+            wormhole.passMessageObject("" as NSCoding, identifier: "getTunnelConnectionRecords")
         } else {
             self.tableView.pullToRefreshView?.stopAnimating()
             tableView.showsPullToRefresh = false;
@@ -64,17 +64,17 @@ class RecentRequestsVC: UIViewController, UITableViewDataSource, UITableViewDele
     }
     
     func updateUI(requestString: String?) {
-        if let responseStr = requestString, jsonArray = responseStr.jsonArray() {
-            self.requests = jsonArray.reverse().filter({ ($0 as? [String : AnyObject]) != nil }).flatMap({ Request(dict: $0 as! [String : AnyObject]) })
+        if let responseStr = requestString, let jsonArray = responseStr.jsonArray() {
+            self.requests = jsonArray.reversed().filter({ ($0 as? [String : AnyObject]) != nil }).flatMap({ Request(dict: $0 as! [String : AnyObject]) })
         }else {
             self.requests = []
         }
         tableView.reloadData()
     }
     
-    func onVPNStatusChanged() {
-        let on = [VPNStatus.On, VPNStatus.Connecting].contains(Manager.sharedManager.vpnStatus)
-        hintLabel.hidden = on
+    @objc func onVPNStatusChanged() {
+        let on = [VPNStatus.On, VPNStatus.Connecting].contains(VPNManager.sharedManager.vpnStatus)
+        hintLabel.isHidden = on
         if on {
             tableView.triggerPullToRefresh()
             tableView.showsPullToRefresh = true;
@@ -82,29 +82,29 @@ class RecentRequestsVC: UIViewController, UITableViewDataSource, UITableViewDele
             tableView.showsPullToRefresh = false;
         }
         if on && showingCache {
-            updateUI(nil)
+            updateUI(requestString: nil)
         }
         showingCache = !on
     }
     
     // MARK: - TableView DataSource & Delegate
-    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        emptyView.hidden = requests.count > 0
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        emptyView.isHidden = requests.count > 0
         return requests.count
     }
     
-    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCellWithIdentifier(kRecentRequestCellIdentifier, forIndexPath: indexPath) as! RecentRequestsCell
-        cell.config(requests[indexPath.row])
+    internal func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: kRecentRequestCellIdentifier, for: indexPath) as! RecentRequestsCell
+        cell.config(request: requests[indexPath.row])
         return cell
     }
     
-    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        tableView.deselectRowAtIndexPath(indexPath, animated: true)
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
         navigationController?.pushViewController(RequestDetailVC(request: requests[indexPath.row]), animated: true)
     }
     
-    func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
+    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
         return true
     }
 
@@ -114,7 +114,7 @@ class RecentRequestsVC: UIViewController, UITableViewDataSource, UITableViewDele
         view.addSubview(tableView)
         view.addSubview(emptyView)
         view.addSubview(hintLabel)
-        tableView.registerClass(RecentRequestsCell.self, forCellReuseIdentifier: kRecentRequestCellIdentifier)
+        tableView.register(RecentRequestsCell.self, forCellReuseIdentifier: kRecentRequestCellIdentifier)
         setupLayout()
     }
     
@@ -133,12 +133,12 @@ class RecentRequestsVC: UIViewController, UITableViewDataSource, UITableViewDele
     }
     
     lazy var tableView: UITableView = {
-        let v = UITableView(frame: CGRect.zero, style: .Plain)
+        let v = UITableView(frame: CGRect.zero, style: .plain)
         v.dataSource = self
         v.delegate = self
         v.tableFooterView = UIView()
         v.tableHeaderView = UIView()
-        v.separatorStyle = .SingleLine
+        v.separatorStyle = .singleLine
         v.estimatedRowHeight = 70
         v.rowHeight = UITableViewAutomaticDimension
         return v
@@ -153,12 +153,12 @@ class RecentRequestsVC: UIViewController, UITableViewDataSource, UITableViewDele
     lazy var hintLabel: UILabel = {
         let v = UILabel()
         v.text = "Mume is not connected".localized()
-        v.textColor = UIColor.whiteColor()
+        v.textColor = UIColor.white
         v.backgroundColor = "E74C3C".color
-        v.textAlignment = .Center
-        v.font = UIFont.systemFontOfSize(14)
+        v.textAlignment = .center
+        v.font = UIFont.systemFont(ofSize: 14)
         v.alpha = 0.8
-        v.hidden = true
+        v.isHidden = true
         return v
     }()
     

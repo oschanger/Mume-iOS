@@ -16,21 +16,21 @@ import Realm
 
 class DataInitializer: NSObject, AppLifeCycleProtocol {
 
-    func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject : AnyObject]?) -> Bool {
-        Manager.sharedManager.setup()
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey : Any]? = nil) -> Bool {
+        VPNManager.sharedManager.setup()
         sync()
         return true
     }
     
-    func applicationDidEnterBackground(application: UIApplication) {
-        _ = try? Manager.sharedManager.regenerateConfigFiles()
+    func applicationDidEnterBackground(_ application: UIApplication) {
+        _ = try? VPNManager.sharedManager.regenerateConfigFiles()
     }
 
-    func applicationWillTerminate(application: UIApplication) {
-        _ = try? Manager.sharedManager.regenerateConfigFiles()
+    func applicationWillTerminate(_ application: UIApplication) {
+        _ = try? VPNManager.sharedManager.regenerateConfigFiles()
     }
 
-    func applicationWillEnterForeground(application: UIApplication) {
+    func applicationWillEnterForeground(_ application: UIApplication) {
         sync()
     }
 

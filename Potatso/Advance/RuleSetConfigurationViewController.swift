@@ -20,10 +20,10 @@ class RuleSetConfigurationViewController: FormViewController {
     var editable: Bool {
         return ruleSet.editable && !ruleSet.isSubscribe
     }
-    var callback: (PotatsoModel.RuleSet? -> Void)?
+    var callback: ((PotatsoModel.RuleSet?) -> Void)?
     var editSection: Section = Section()
 
-    init(ruleSet: PotatsoModel.RuleSet? = nil, callback: (PotatsoModel.RuleSet? -> Void)? = nil) {
+    init(ruleSet: PotatsoModel.RuleSet? = nil, callback: ((PotatsoModel.RuleSet?) -> Void)? = nil) {
         self.callback = callback
         if let ruleSet = ruleSet {
             self.ruleSet = RuleSet(value: ruleSet)
@@ -49,12 +49,13 @@ class RuleSetConfigurationViewController: FormViewController {
         generateForm()
     }
     
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         if editable {
-            navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .Done, target: self, action: #selector(save))
+            navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(save))
         }
-        tableView?.reloadSections(NSIndexSet(index: 1), withRowAnimation: .None)
+        tableView?.reloadSections(IndexSet.init(integer: 1), with: .none)
+        
     }
 
     func generateForm() {
@@ -75,11 +76,11 @@ class RuleSetConfigurationViewController: FormViewController {
             }.cellUpdate({ (cell, row) in
                 cell.textLabel?.textColor = Color.Brand
             }).onCellSelection({ [unowned self] (cell, row) -> () in
-                self.showRuleConfiguration(nil)
+                self.showRuleConfiguration(rule: nil)
             })
         }
         for rule in ruleSet.rules {
-            insertRule(rule, atIndex: editSection.count)
+            insertRule(rule: rule, atIndex: editSection.count)
         }
         form +++ editSection
     }
@@ -90,22 +91,22 @@ class RuleSetConfigurationViewController: FormViewController {
                 $0.value = rule.rowDescription.1 == nil ? "" : "\(rule.rowDescription.1!)"
                 $0.disabled = Condition(booleanLiteral: !self.editable)
             }.cellSetup({ (cell, row) -> () in
-                cell.accessoryType = .DisclosureIndicator
-                cell.selectionStyle = .Default
+                cell.accessoryType = .disclosureIndicator
+                cell.selectionStyle = .default
             }).cellUpdate({ (cell, row) -> () in
                 row.title = rule.rowDescription.0 == nil ? "" : "\(rule.rowDescription.0!)"
                 row.value = rule.rowDescription.1 == nil ? "" : "\(rule.rowDescription.1!)"
             }).onCellSelection({ [unowned self] (cell, row) -> () in
-                self.showRuleConfiguration(rule, index: index - 1)
+                self.showRuleConfiguration(rule: rule, index: index - 1)
             }),
-            atIndex: index)
+            at: index)
     }
     
     func showRuleConfiguration(rule: Rule?, index: Int = 0) {
         let vc = RuleConfigurationViewController(rule: rule) { result in
             if rule == nil {
-                self.insertRule(result, atIndex: self.form[1].count)
-                self.ruleSet.addRule(result)
+                self.insertRule(rule: result, atIndex: self.form[1].count)
+                self.ruleSet.addRule(rule: result)
             } else {
                 var rules = self.ruleSet.rules
                 rules[index] = result
@@ -116,18 +117,18 @@ class RuleSetConfigurationViewController: FormViewController {
         navigationController?.pushViewController(vc, animated: true)
     }
     
-    func save() {
+    @objc func save() {
         do {
             let values = form.values()
-            guard let name = (values[kRuleSetFormName] as? String)?.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet()) where name.characters.count > 0 else {
+            guard let name = (values[kRuleSetFormName] as? String)?.trimmingCharacters(in: .whitespaces), name.characters.count > 0 else {
                 throw "Name can't be empty".localized()
             }
             ruleSet.name = name
-            try DBUtils.add(ruleSet)
+            try DBUtils.add(object: ruleSet)
             callback?(ruleSet)
             close()
         } catch {
-            showTextHUD("\(error)", dismissAfterDelay: 1.0)
+            showTextHUD(text: "\(error)", dismissAfterDelay: 1.0)
         }
     }
     
@@ -138,8 +139,8 @@ class RuleSetConfigurationViewController: FormViewController {
         return false
     }
     
-    func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
-        if editingStyle == .Delete {
+    func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: IndexPath) {
+        if editingStyle == .delete {
             ruleSet.removeRule(atIndex: indexPath.row - 1)
             form[indexPath].hidden = true
             form[indexPath].evaluateHidden()
@@ -147,7 +148,7 @@ class RuleSetConfigurationViewController: FormViewController {
     }
     
     func tableView(tableView: UITableView, editingStyleForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCellEditingStyle {
-        return UITableViewCellEditingStyle.Delete
+        return UITableViewCellEditingStyle.delete
     }
     
 }

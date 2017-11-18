@@ -11,7 +11,9 @@ import Aspects
 
 extension UIViewController: UIGestureRecognizerDelegate  {
     
-    public override class func initialize() {
+    
+    /*
+    open override class func initialize() {
         struct Static {
             static var token: dispatch_once_t = 0
         }
@@ -28,14 +30,15 @@ extension UIViewController: UIGestureRecognizerDelegate  {
             UIViewController.aspectHook(#selector(viewWillDisappear(_:)), swizzledSelector: #selector(ics_viewWillDisappear(_:)))
         }
     }
+ */
     
     // MARK: - Method Swizzling
     
     func ics_viewWillAppear(animated: Bool) {
-        self.ics_viewWillAppear(animated)
+        self.ics_viewWillAppear(animated: animated)
         if let navVC = self.navigationController {
             if !isModal() {
-                showLeftBackButton(navVC.viewControllers.count > 1)
+                showLeftBackButton(shouldShow: navVC.viewControllers.count > 1)
             }
         }
     }
@@ -45,19 +48,19 @@ extension UIViewController: UIGestureRecognizerDelegate  {
     }
     
     func ics_viewDidAppear(animated: Bool) {
-        self.ics_viewDidAppear(animated)
+        self.ics_viewDidAppear(animated: animated)
         if let navVC = self.navigationController {
-            enableSwipeGesture(navVC.viewControllers.count > 1)
+            enableSwipeGesture(shouldShow: navVC.viewControllers.count > 1)
         }
     }
     
     func ics_viewWillDisappear(animated: Bool) {
-        self.ics_viewWillDisappear(animated)
+        self.ics_viewWillDisappear(animated: animated)
     }
     
     func showLeftBackButton(shouldShow: Bool) {
         if shouldShow {
-            let backItem = UIBarButtonItem(image: "Back".templateImage, style: UIBarButtonItemStyle.Plain, target: self, action: #selector(pop))
+            let backItem = UIBarButtonItem(image: "Back".templateImage, style: UIBarButtonItemStyle.plain, target: self, action: #selector(pop))
             navigationItem.leftBarButtonItem = backItem
         }else{
             navigationItem.leftBarButtonItem = nil
@@ -67,35 +70,35 @@ extension UIViewController: UIGestureRecognizerDelegate  {
     func enableSwipeGesture(shouldShow: Bool) {
         if shouldShow {
             navigationController?.interactivePopGestureRecognizer?.delegate = self
-            navigationController?.interactivePopGestureRecognizer?.enabled = true
+            navigationController?.interactivePopGestureRecognizer?.isEnabled = true
         }else{
             navigationController?.interactivePopGestureRecognizer?.delegate = nil
-            navigationController?.interactivePopGestureRecognizer?.enabled = false
+            navigationController?.interactivePopGestureRecognizer?.isEnabled = false
         }
     }
 
     func addChildVC(child: UIViewController) {
         view.addSubview(child.view)
         addChildViewController(child)
-        child.didMoveToParentViewController(self)
+        child.didMove(toParentViewController: self)
     }
 
     func removeChildVC(child: UIViewController) {
-        child.willMoveToParentViewController(nil)
+        child.willMove(toParentViewController: nil)
         child.view.removeFromSuperview()
         child.removeFromParentViewController()
     }
     
-    func pop() {
-        navigationController?.popViewControllerAnimated(true)
+    @objc func pop() {
+        navigationController?.popViewController(animated: true)
     }
     
     func dismiss() {
-        dismissViewControllerAnimated(true, completion: nil)
+        dismiss(animated: true, completion: nil)
     }
     
     func close() {
-        if let navVC = self.navigationController where navVC.viewControllers.count > 1 {
+        if let navVC = self.navigationController, navVC.viewControllers.count > 1 {
             pop()
         }else {
             dismiss()

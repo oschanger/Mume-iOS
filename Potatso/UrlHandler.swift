@@ -14,14 +14,13 @@ import CallbackURLKit
 
 
 class UrlHandler: NSObject, AppLifeCycleProtocol {
-    
-    func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject : AnyObject]?) -> Bool {
-        let manager = Manager.sharedInstance
-        manager.callbackURLScheme = Manager.URLSchemes?.first
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey : Any]? = nil) -> Bool {
+        let manager = Manager.shared
+        manager.callbackURLScheme = Manager.urlSchemes?.first
         for action in [URLAction.ON, URLAction.OFF, URLAction.SWITCH] {
             manager[action.rawValue] = { parameters, success, failure, cancel in
-                action.perform(nil, parameters: parameters) { error in
-                    Async.main(after: 1, block: {
+                action.perform(url: nil, parameters: parameters) { error in
+                    Async.main(after: 1, {
                         if let error = error {
                             failure(error as NSError)
                         }else {
@@ -34,9 +33,9 @@ class UrlHandler: NSObject, AppLifeCycleProtocol {
         }
         return true
     }
-    
-    func application(app: UIApplication, openURL url: NSURL, options: [String : AnyObject]) -> Bool {
-        let components = NSURLComponents(URL: url, resolvingAgainstBaseURL: false)
+
+    func application(_ app: UIApplication, open url: URL, options: [UIApplicationOpenURLOptionsKey : Any] = [:]) -> Bool {
+        let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
         var parameters: Parameters = [:]
         components?.queryItems?.forEach {
             guard let _ = $0.value else {
@@ -45,16 +44,16 @@ class UrlHandler: NSObject, AppLifeCycleProtocol {
             parameters[$0.name] = $0.value
         }
         if let host = url.host {
-            return dispatchAction(url, actionString: host, parameters: parameters)
+            return dispatchAction(url: url, actionString: host, parameters: parameters)
         }
         return false
     }
     
-    func dispatchAction(url: NSURL?, actionString: String, parameters: Parameters) -> Bool {
+    func dispatchAction(url: URL?, actionString: String, parameters: Parameters) -> Bool {
         guard let action = URLAction(rawValue: actionString) else {
             return false
         }
-        return action.perform(url, parameters: parameters)
+        return action.perform(url: url, parameters: parameters)
     }
 
 }
@@ -66,29 +65,29 @@ enum URLAction: String {
     case SWITCH = "switch"
     case XCALLBACK = "x-callback-url"
 
-    func perform(url: NSURL?, parameters: Parameters, completion: (ErrorType? -> Void)? = nil) -> Bool {
+    func perform(url: URL?, parameters: Parameters, completion: ((Error?) -> Void)? = nil) -> Bool {
         switch self {
         case .ON:
-            Manager.sharedManager.startVPN({ (manager, error) in
+            VPNManager.sharedManager.startVPN(complete: { (manager, error) in
                 if error == nil {
-                    self.autoClose(parameters)
+                    self.autoClose(parameters: parameters)
                 }
                 completion?(error)
             })
         case .OFF:
-            Manager.sharedManager.stopVPN()
-            autoClose(parameters)
+            VPNManager.sharedManager.stopVPN()
+            autoClose(parameters: parameters)
             completion?(nil)
         case .SWITCH:
-            Manager.sharedManager.switchVPN({ (manager, error) in
+            VPNManager.sharedManager.switchVPN(completion: { (manager, error) in
                 if error == nil {
-                    self.autoClose(parameters)
+                    self.autoClose(parameters: parameters)
                 }
                 completion?(error)
             })
         case .XCALLBACK:
             if let url = url {
-                return Manager.sharedInstance.handleOpenURL(url)
+                return Manager.shared.handleOpen(url: url)
             }
         }
         return true
@@ -96,12 +95,12 @@ enum URLAction: String {
 
     func autoClose(parameters: Parameters) {
         var autoclose = false
-        if let value = parameters["autoclose"] where value.lowercaseString == "true" || value.lowercaseString == "1" {
+        if let value = parameters["autoclose"], value.lowercased() == "true" || value.lowercased() == "1" {
             autoclose = true
         }
         if autoclose {
-            Async.main(after: 1, block: {
-                UIControl().sendAction("suspend", to: UIApplication.sharedApplication(), forEvent: nil)
+            Async.main(after: 1, {
+                UIControl().sendAction(#selector(NSXPCConnection.suspend), to: UIApplication.shared, for: nil)
             })
         }
     }

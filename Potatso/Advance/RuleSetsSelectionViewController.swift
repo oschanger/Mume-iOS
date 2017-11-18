@@ -14,10 +14,10 @@ import Eureka
 class RuleSetsSelectionViewController: FormViewController {
 
     var selectedRuleSets: [PotatsoModel.RuleSet]
-    var callback: ([PotatsoModel.RuleSet] -> Void)?
+    var callback: (([PotatsoModel.RuleSet]) -> Void)?
     var ruleSets: [PotatsoModel.RuleSet] = []
     
-    init(selectedRuleSets: [PotatsoModel.RuleSet], callback: ([PotatsoModel.RuleSet] -> Void)?) {
+    init(selectedRuleSets: [PotatsoModel.RuleSet], callback: (([PotatsoModel.RuleSet]) -> Void)?) {
         self.selectedRuleSets = selectedRuleSets
         self.callback = callback
         super.init(nibName: nil, bundle: nil)
@@ -32,17 +32,17 @@ class RuleSetsSelectionViewController: FormViewController {
         navigationItem.title = "Choose Rule Set".localized()
     }
     
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         generateForm()
     }
     
-    override func viewWillDisappear(animated: Bool) {
+    override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         selectedRuleSets.removeAll()
         let values = form.values()
         for ruleSet in ruleSets {
-            if let checked = values[ruleSet.name] as? Bool where checked {
+            if let checked = values[ruleSet.name] as? Bool, checked {
                 selectedRuleSets.append(ruleSet)
             }
         }
@@ -52,7 +52,7 @@ class RuleSetsSelectionViewController: FormViewController {
     func generateForm() {
         form.delegate = nil
         form.removeAll()
-        ruleSets = defaultRealm.objects(PotatsoModel.RuleSet).sorted("createAt").map({ $0 })
+        ruleSets = defaultRealm.objects(RuleSet.self).sorted(byKeyPath: "createAt").map({ $0 })
         form +++ Section("Rule Set".localized())
         for ruleSet in ruleSets {
             form[0]
@@ -66,7 +66,7 @@ class RuleSetsSelectionViewController: FormViewController {
         }.cellUpdate({ (cell, row) in
             cell.textLabel?.textColor = Color.Brand
         }).onCellSelection({ [unowned self] (cell, row) -> () in
-            self.showRuleSetConfiguration(nil)
+            self.showRuleSetConfiguration(ruleSet: nil)
         })
         form.delegate = self
         tableView?.reloadData()

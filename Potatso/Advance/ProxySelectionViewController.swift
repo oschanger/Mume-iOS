@@ -15,9 +15,9 @@ class ProxySelectionViewController: FormViewController {
     
     var proxies: [Proxy] = []
     var selectedProxies: NSMutableSet
-    var callback: ([Proxy] -> Void)?
+    var callback: (([Proxy]) -> Void)?
     
-    init(selectedProxies: [Proxy], callback: ([Proxy] -> Void)?) {
+    init(selectedProxies: [Proxy], callback: (([Proxy]) -> Void)?) {
         self.selectedProxies = NSMutableSet(array: selectedProxies)
         self.callback = callback
         super.init(nibName: nil, bundle: nil)
@@ -32,7 +32,7 @@ class ProxySelectionViewController: FormViewController {
         navigationItem.title = "Choose Proxy".localized()
     }
     
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         generateForm()
     }
@@ -40,16 +40,16 @@ class ProxySelectionViewController: FormViewController {
     func generateForm() {
         form.delegate = nil
         form.removeAll()
-        proxies = defaultRealm.objects(Proxy).sorted("createAt").map{ $0 }
+        proxies = defaultRealm.objects(Proxy.self).sorted(byKeyPath: "createAt").map{ $0 }
         form +++ Section("Proxy".localized())
         let sets = proxies.filter { $0.host != nil }
         for proxy in sets {
             form[0]
                 <<< CheckRow(proxy.description) {
                     $0.title = proxy.description
-                    $0.value = selectedProxies.containsObject(proxy)
+                    $0.value = selectedProxies.contains(proxy)
             }.onChange({ [unowned self] (row) in
-                self.selectProxy(row)
+                self.selectProxy(selectedRow: row)
             })
         }
         form[0] <<< BaseButtonRow () {
@@ -57,7 +57,7 @@ class ProxySelectionViewController: FormViewController {
         }.cellUpdate({ (cell, row) in
             cell.textLabel?.textColor = Color.Brand
         }).onCellSelection({ [unowned self] (cell, row) -> () in
-            self.showProxyConfiguration(nil)
+            self.showProxyConfiguration(proxy: nil)
         })
         form.delegate = self
         tableView?.reloadData()
@@ -67,8 +67,8 @@ class ProxySelectionViewController: FormViewController {
         selectedProxies.removeAllObjects()
         let values = form.values()
         for proxy in proxies {
-            if let checked = values[proxy.host] as? Bool where checked && proxy.description == selectedRow.title {
-                selectedProxies.addObject(proxy)
+            if let checked = values[proxy.host] as? Bool, checked && proxy.description == selectedRow.title {
+                selectedProxies.add(proxy)
             }
         }
         self.callback?(selectedProxies.allObjects as! [Proxy])

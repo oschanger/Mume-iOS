@@ -14,24 +14,24 @@ import PotatsoLibrary
 
 class VPN {
     
-    static func switchVPN(group: ConfigurationGroup, completion: ((ErrorType?) -> Void)? = nil) {
-        let defaultUUID = Manager.sharedManager.defaultConfigGroup.uuid
+    static func switchVPN(group: ConfigurationGroup, completion: ((Error?) -> Void)? = nil) {
+        let defaultUUID = VPNManager.sharedManager.defaultConfigGroup.uuid
         let isDefault = defaultUUID == group.uuid
         if !isDefault {
-            Manager.sharedManager.stopVPN()
+            VPNManager.sharedManager.stopVPN()
             Async.main(after: 1) {
-                _switchDefaultVPN(group, completion: completion)
+                _switchDefaultVPN(group: group, completion: completion)
             }
         }else {
-            _switchDefaultVPN(group, completion: completion)
+            _switchDefaultVPN(group: group, completion: completion)
         }
     }
 
-    private static func _switchDefaultVPN(group: ConfigurationGroup, completion: ((ErrorType?) -> Void)? = nil) {
-        Manager.sharedManager.setDefaultConfigGroup(group.uuid, name: group.name)
-        Manager.sharedManager.switchVPN { (manager, error) in
+    private static func _switchDefaultVPN(group: ConfigurationGroup, completion: ((Error?) -> Void)? = nil) {
+        VPNManager.sharedManager.setDefaultConfigGroup(id: group.uuid, name: group.name)
+        VPNManager.sharedManager.switchVPN { (manager, error) in
             if let _ = manager {
-                Async.background(after: 2, block: { () -> Void in
+                Async.background(after: 2, { () -> Void in
                     Appirater.userDidSignificantEvent(false)
                 })
             }
