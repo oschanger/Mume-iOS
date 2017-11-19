@@ -11,15 +11,15 @@ import PotatsoModel
 import Eureka
 import Cartography
 
-/*
-class RequestEventRow: Row<RequestEvent, RequestEventRowCell>, RowType {
 
-    required init(tag: String?) {
+final class RequestEventRow: Row<RequestEventRowCell>, RowType {
+
+    public required init(tag: String?) {
         super.init(tag: tag)
         displayValueFor = nil
     }
 }
-*/
+
 
 class RequestEventRowCell: Cell<RequestEvent>, CellType {
 

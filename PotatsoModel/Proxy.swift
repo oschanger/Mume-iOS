@@ -184,9 +184,9 @@ extension Proxy {
         if let uriString = dictionary["uri"] as? String {
             if uriString.lowercased().hasPrefix(Proxy.ssUriPrefix) {
                 // Shadowsocks
-                //let undecodedString = uriString.substring(from: uriString.startIndex.advanced(by: Proxy.ssUriPrefix.characters.count))
-                let undecodedString = uriString.substring(from: uriString.index(uriString.startIndex, offsetBy: Proxy.ssUriPrefix.characters.count))
-                guard let proxyString = base64DecodeIfNeeded(proxyString: undecodedString), let _ = proxyString.range(of: ":")?.lowerBound else {
+                let start = uriString.index(uriString.startIndex, offsetBy: Proxy.ssUriPrefix.count)
+                let undecodedString = "\(uriString[start...])"
+                guard let proxyString = base64DecodeIfNeeded(proxyString: undecodedString)?.replacingOccurrences(of: "\n", with: ""), let _ = proxyString.range(of: ":")?.lowerBound else {
                     throw ProxyError.InvalidUri
                 }
                 guard let pc1 = proxyString.range(of: ":")?.lowerBound, let pc2 = proxyString.range(of: ":", options: .backwards)?.lowerBound, let pcm = proxyString.range(of: "@", options: .backwards)?.lowerBound else {
@@ -195,29 +195,27 @@ extension Proxy {
                 if !(pc1 < pcm && pcm < pc2) {
                     throw ProxyError.InvalidUri
                 }
-                let fullAuthscheme = proxyString.lowercased().substring(with: proxyString.startIndex..<pc1)
+                let fullAuthscheme = "\(proxyString.lowercased()[..<pc1])"
                 if let pOTA = fullAuthscheme.range(of :"-auth", options: .backwards)?.lowerBound {
-                    self.authscheme = fullAuthscheme.substring(to: pOTA)
+                    self.authscheme = "\(fullAuthscheme[...pOTA])"
                     self.ota = true
                 }else {
                     self.authscheme = fullAuthscheme
                 }
-                self.password = proxyString.substring(with: pc1..<pcm)
-                self.host = proxyString.substring(with: pcm..<pc2)
-                guard let p = Int(proxyString.substring(with: pc2..<proxyString.endIndex)) else {
+                let pc1_successor = proxyString.index(pc1, offsetBy: 1)
+                let pc2_successor = proxyString.index(pc2, offsetBy: 1)
+                let pcm_successor = proxyString.index(pcm, offsetBy: 1)
+
+                self.password = "\(proxyString[pc1_successor..<pcm])"
+                self.host = "\(proxyString[pcm_successor..<pc2])"
+                guard let p = Int("\(proxyString[pc2_successor...])") else {
                     throw ProxyError.InvalidPort
                 }
-                /*
-                self.password = proxyString.substringWith(pc1.successor()..<pcm)
-                self.host = proxyString.substringWith(pcm.successor()..<pc2)
-                guard let p = Int(proxyString.substring(with: pc2.successor()..<proxyString.endIndex)) else {
-                    throw ProxyError.InvalidPort
-                }*/
                 self.port = p
                 self.type = .Shadowsocks
             }else if uriString.lowercased().hasPrefix(Proxy.ssrUriPrefix) {
-                let undecodedString = uriString.substring(from: uriString.index(uriString.startIndex, offsetBy: Proxy.ssrUriPrefix.characters.count))
-                //let undecodedString = uriString.substring(from: uriString.startIndex.advanced(by: Proxy.ssrUriPrefix.characters.count))
+                let start = uriString.index(uriString.startIndex, offsetBy: Proxy.ssrUriPrefix.count)
+                let undecodedString = "\(uriString[start...])"
                 guard let proxyString = base64DecodeIfNeeded(proxyString: undecodedString), let _ =
                     proxyString.range(of: ":")?.lowerBound else {
                     //proxyString.rangeOfString(":")?.startIndex else {
@@ -236,12 +234,11 @@ extension Proxy {
                 }
                  */
                 if let queryMarkIndex = proxyString.range(of: "?", options: .backwards)?.lowerBound {
-                    hostString = proxyString.substring(to: queryMarkIndex)
-                    //
-                    queryString = proxyString.substring(from:  queryMarkIndex)
+                    hostString = "\(proxyString[...queryMarkIndex])"
+                    queryString = "\(proxyString[...queryMarkIndex])"
                 }
                 if let hostSlashIndex = hostString.range(of: "/", options: .backwards)?.lowerBound {
-                    hostString = hostString.substring(to: hostSlashIndex)
+                    hostString = "\(hostString[...hostSlashIndex])"
                 }
                 let hostComps = hostString.components(separatedBy: ":")
                 guard hostComps.count == 6 else {
@@ -273,7 +270,7 @@ extension Proxy {
                 // Not supported yet
                 throw ProxyError.InvalidUri
             }
-        }else {
+        } else {
             guard let host = dictionary["host"] as? String else{
                 throw ProxyError.InvalidHost
             }
@@ -303,7 +300,7 @@ extension Proxy {
             return proxyString
         }
         let base64String = proxyString.replacingOccurrences(of: "-", with: "+").replacingOccurrences(of: "_", with: "/")
-        let padding = base64String.characters.count + (base64String.characters.count % 4 != 0 ? (4 - base64String.characters.count % 4) : 0)
+        let padding = base64String.count + (base64String.count % 4 != 0 ? (4 - base64String.count % 4) : 0)
         if let decodedData = NSData(base64Encoded:base64String.padding(toLength: padding, withPad: "=", startingAt: 0), options: NSData.Base64DecodingOptions(rawValue: 0)), let decodedString = NSString(data: decodedData as Data, encoding: String.Encoding.utf8.rawValue) {
             return decodedString as String
         }

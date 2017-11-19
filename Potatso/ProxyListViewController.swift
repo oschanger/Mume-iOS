@@ -67,11 +67,10 @@ class ProxyListViewController: FormViewController {
         let section = self.cloudProxies.count > 0 ? Section("Local".localized()) : Section()
         for proxy in proxies {
             section
-                /*
                 <<< ProxyRow () {
-                    //$0.value = proxy
+                    $0.value = proxy
                 }.cellSetup({ (cell, row) -> () in
-                    cell.selectionStyle = .None
+                    cell.selectionStyle = .none
                 }).onCellSelection({ [unowned self] (cell, row) in
                     cell.setSelected(false, animated: true)
                     let proxy = row.value
@@ -79,12 +78,11 @@ class ProxyListViewController: FormViewController {
                         cb(proxy)
                         self.close()
                     }else {
-                        if proxy?.type != .None {
-                            self.showProxyConfiguration(proxy)
+                        if proxy?.type != .none {
+                            self.showProxyConfiguration(proxy: proxy)
                         }
                     }
                 })
- */
         }
         form +++ section
         
@@ -92,11 +90,10 @@ class ProxyListViewController: FormViewController {
             let cloudSection = Section("Cloud".localized())
             for proxy in cloudProxies {
                 cloudSection
-                    /*
                     <<< ProxyRow () {
-                        //$0.value = proxy
+                            $0.value = proxy
                         }.cellSetup({ (cell, row) -> () in
-                            cell.selectionStyle = .None
+                            cell.selectionStyle = .none
                         }).onCellSelection({ [weak self] (cell, row) in
                             cell.setSelected(false, animated: true)
                             let proxy = row.value
@@ -104,14 +101,13 @@ class ProxyListViewController: FormViewController {
                                 cb(proxy)
                                 self?.close()
                             }else {
-                                if proxy?.type != .None {
+                                if proxy?.type != .none {
                                     let vc = ProxyConfigurationViewController(upstreamProxy: proxy)
                                     vc.readOnly = true
                                     self?.navigationController?.pushViewController(vc, animated: true)
                                 }
                             }
-                            })
- */
+                        })
             }
             form +++ cloudSection
         }
@@ -140,7 +136,6 @@ class ProxyListViewController: FormViewController {
 
     func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: IndexPath) {
         if editingStyle == .delete {
-            /*
             guard indexPath.row < proxies.count, let item = (form[indexPath] as? ProxyRow)?.value else {
                 return
             }
@@ -153,7 +148,6 @@ class ProxyListViewController: FormViewController {
             }catch {
                 self.showTextHUD(text: "\("Fail to delete item".localized()): \((error as NSError).localizedDescription)", dismissAfterDelay: 1.5)
             }
- */
         }
     }
 
@@ -161,6 +155,13 @@ class ProxyListViewController: FormViewController {
         super.viewDidLayoutSubviews()
         tableView?.tableFooterView = UIView()
         tableView?.tableHeaderView = UIView()
+    }
+    
+    override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        return 0.01
+    }
+    override func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+        return 0.01
     }
 
 }

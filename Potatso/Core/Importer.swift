@@ -59,6 +59,7 @@ struct Importer {
     func importSS(source: String) {
         do {
             let proxy = try Proxy(dictionary: ["uri": source as AnyObject])
+            print(proxy)
             do {
                 try proxy.validate()
                 try DBUtils.add(object: proxy)
@@ -75,6 +76,7 @@ struct Importer {
         viewController?.showProgreeHUD(text: "Importing Config...".localized())
         Async.background(after: 1) {
             let config = Config()
+            print(config)
             do {
                 if isURL {
                     if let url = URL(string: source) {
@@ -85,7 +87,7 @@ struct Importer {
                 }
                 try config.save()
                 self.onConfigSaveCallback(success: true, error: nil)
-            }catch {
+            } catch {
                 self.onConfigSaveCallback(success: false, error: error)
             }
         }

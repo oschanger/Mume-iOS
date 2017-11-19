@@ -46,17 +46,18 @@ class HomeVC: FormViewController, UINavigationControllerDelegate, HomePresenterP
         super.viewDidLoad()
         // Fix a UI stuck bug
         navigationController?.delegate = self
-    }
-
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
+        
         self.navigationItem.titleView = titleButton
         // Post an empty message so we could attach to packet tunnel process
         VPNManager.sharedManager.postMessage()
         //     @objc    handleRefres@objc hUI(nil)
-        updateForm()
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: "List".templateImage, style: .plain, target: presenter, action: #selector(HomePresenter.chooseConfigGroups))
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addProxy(sender:)))
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        updateForm()
         startTimer()
     }
     
@@ -120,10 +121,6 @@ class HomeVC: FormViewController, UINavigationControllerDelegate, HomePresenterP
     func updateForm() {
         form.delegate = nil
         form.removeAll()
-
-        
-        form.delegate = nil
-        form.removeAll()
         
         form +++ generateProxySection()
 
@@ -131,32 +128,29 @@ class HomeVC: FormViewController, UINavigationControllerDelegate, HomePresenterP
         proxies = DBUtils.allNotDeleted(type: Proxy.self, sorted: "createAt").map({ $0 })
         if proxies.count == 0 {
             section
-                /*
                 <<< ProxyRow() {
                     $0.value = nil
-                    $0.cellStyle = UITableViewCellStyle.Subtitle
+                    $0.cellStyle = UITableViewCellStyle.subtitle
                     }.cellSetup({ (cell, row) -> () in
-                        cell.selectionStyle = .None
-                        cell.accessoryType = .Checkmark
+                        cell.selectionStyle = .none
+                        cell.accessoryType = .checkmark
                     })
- */
         } else {
             if nil == self.presenter.proxy {
                 try? ConfigurationGroup.changeProxy(forGroupId: self.presenter.group.uuid, proxyId: proxies[0].uuid)
             }
         
-        for proxy in proxies {
-            section
-                /*
+            for proxy in proxies {
+                section
                 <<< ProxyRow() {
                     $0.value = proxy
-                    $0.cellStyle = UITableViewCellStyle.Subtitle
+                    $0.cellStyle = UITableViewCellStyle.subtitle
                     }.cellSetup({ (cell, row) -> () in
-                        cell.selectionStyle = .None
+                        cell.selectionStyle = .none
                         if (self.presenter.proxy?.uuid == proxy.uuid) {
-                            cell.accessoryType = .Checkmark
+                            cell.accessoryType = .checkmark
                         } else {
-                            cell.accessoryType = .None
+                            cell.accessoryType = .none
                         }
                     }).onCellSelection({ [unowned self] (cell, row) in
                         let proxy = row.value
@@ -166,12 +160,11 @@ class HomeVC: FormViewController, UINavigationControllerDelegate, HomePresenterP
                             self.updateForm()
                             //TODO: reconnect here
                         }catch {
-                            self.showTextHUD("\("Fail to change proxy".localized()): \((error as NSError).localizedDescription)", dismissAfterDelay: 1.5)
+                            self.showTextHUD(text: "\("Fail to change proxy".localized()): \((error as NSError).localizedDescription)", dismissAfterDelay: 1.5)
                         }
-                        })
-            */
-        }
+                    })
             }
+        }
         form +++ section
         
         form +++ generateRuleSetSection()

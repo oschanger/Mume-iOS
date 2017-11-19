@@ -11,16 +11,14 @@ import PotatsoModel
 import Eureka
 import Cartography
 
-/*
-class ProxyRow: Row<Proxy, ProxyRowCell>, RowType {
 
-    required init(tag: String?) {
+final class ProxyRow: Row<ProxyRowCell>, RowType {
+
+    public required init(tag: String?) {
         super.init(tag: tag)
         displayValueFor = nil
     }
 }
- */
-
 
 class ProxyRowCell: Cell<Proxy>, CellType {
 
@@ -34,9 +32,9 @@ class ProxyRowCell: Cell<Proxy>, CellType {
     
     override func setup() {
         super.setup()
-//        preservesSuperviewLayoutMargins = false
-//        layoutMargins = UIEdgeInsetsZero
-//        separatorInset = UIEdgeInsetsZero
+        preservesSuperviewLayoutMargins = false
+        layoutMargins = UIEdgeInsets.zero
+        separatorInset = UIEdgeInsets.zero
     }
 
     override func update() {

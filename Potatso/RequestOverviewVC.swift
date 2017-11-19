@@ -45,13 +45,11 @@ class RequestOverviewVC: FormViewController {
     func generateTimelineSection() -> Section {
         
         let section = Section()
-        /*
         for event in request.events {
             section <<< RequestEventRow() {
                 $0.value = event
             }
         }
-         */
         return section
     }
 
