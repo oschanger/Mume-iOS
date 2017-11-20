@@ -219,11 +219,6 @@ public class VPNManager {
             }
             let uuid = group.uuid
             let name = group.name
-            /*
-            dispatch_async(DispatchQueue.global(), {
-                self.setDefaultConfigGroup(id: uuid, name: name)
-            })
- */
             DispatchQueue.global(qos: .userInitiated).async {
                 self.setDefaultConfigGroup(id: uuid, name: name)
             }
@@ -272,7 +267,7 @@ extension VPNManager {
     
     func generateGeneralConfig() throws {
         let confURL = Potatso.sharedGeneralConfUrl()
-        let json: NSDictionary = ["dns": defaultConfigGroup.dns ]
+        let json: NSDictionary = ["dns": defaultConfigGroup.dns]
         do {
             try json.jsonString()?.write(to: confURL, atomically: true, encoding: String.Encoding.utf8)
         } catch {
@@ -282,18 +277,29 @@ extension VPNManager {
     
     func generateShadowsocksConfig() throws {
         let confURL = Potatso.sharedProxyConfUrl()
-        let content = ""
+        var content = ""
         if let upstreamProxy = upstreamProxy {
             if upstreamProxy.type == .Shadowsocks || upstreamProxy.type == .ShadowsocksR {
-                /*
-                content = ["type": upstreamProxy.type.rawValue, "host": upstreamProxy.host, "port": upstreamProxy.port, "password": upstreamProxy.password ?? "", "authscheme": upstreamProxy.authscheme ?? "", "ota": upstreamProxy.ota, "protocol": upstreamProxy.ssrProtocol ?? "", "obfs": upstreamProxy.ssrObfs ?? "", "obfs_param": upstreamProxy.ssrObfsParam ?? ""].jsonString() ?? ""
- */
+                content = (["type": upstreamProxy.type.rawValue,
+                            "host": upstreamProxy.host,
+                            "port": upstreamProxy.port,
+                            "password": upstreamProxy.password ?? "",
+                            "authscheme": upstreamProxy.authscheme ?? "",
+                            "ota": upstreamProxy.ota,
+                            "protocol": upstreamProxy.ssrProtocol ?? "",
+                            "obfs": upstreamProxy.ssrObfs ?? "",
+                            "obfs_param": upstreamProxy.ssrObfsParam ?? ""] as NSDictionary).jsonString()!
+ 
             } else if upstreamProxy.type == .Socks5 {
-                /*
-                content = ["type": upstreamProxy.type.rawValue, "host": upstreamProxy.host, "port": upstreamProxy.port, "password": upstreamProxy.password ?? "", "authscheme": upstreamProxy.authscheme ?? ""].jsonString() ?? ""
- */
+                content = (["type": upstreamProxy.type.rawValue,
+                            "host": upstreamProxy.host,
+                            "port": upstreamProxy.port,
+                            "password": upstreamProxy.password ?? "",
+                            "authscheme": upstreamProxy.authscheme ?? ""] as NSDictionary).jsonString()!
             }
         }
+
+        print("JSON string = \(content)")
         try content.write(to: confURL, atomically: true, encoding: String.Encoding.utf8)
     }
     
@@ -499,7 +505,7 @@ extension VPNManager {
     private func createProviderManager() -> NETunnelProviderManager {
         let manager = NETunnelProviderManager()
         let p = NETunnelProviderProtocol()
-        p.providerBundleIdentifier = "info.liruqi.potatso.tunnel"
+        p.providerBundleIdentifier = "cx.vpn.potatso.tunnel"
         if let upstreamProxy = upstreamProxy, upstreamProxy.type == .Shadowsocks {
             p.providerConfiguration = ["host": upstreamProxy.host, "port": upstreamProxy.port]
             p.serverAddress = upstreamProxy.host

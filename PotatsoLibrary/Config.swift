@@ -43,7 +43,7 @@ public class Config {
     
     public func setup(string configString: String) throws {
         
-        guard configString.characters.count > 0, let object = try? YAMLSerialization.object(withYAMLString: configString, options: kYAMLReadOptionStringScalars), let yaml = object as? [String: AnyObject] else {
+        guard configString.count > 0, let object = try? YAMLSerialization.object(withYAMLString: configString, options: kYAMLReadOptionStringScalars), let yaml = object as? [String: AnyObject] else {
             throw ConfigError.SyntaxError
         }
         self.configDict = yaml

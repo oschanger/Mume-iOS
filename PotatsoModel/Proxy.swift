@@ -124,7 +124,7 @@ public class Proxy: BaseModel {
         guard let _ = ProxyType(rawValue: typeRaw)else {
             throw ProxyError.InvalidType
         }
-        guard host.characters.count > 0 else {
+        guard host.count > 0 else {
             throw ProxyError.InvalidHost
         }
         guard port > 0 && port <= Int(UINT16_MAX) else {
@@ -235,7 +235,8 @@ extension Proxy {
                  */
                 if let queryMarkIndex = proxyString.range(of: "?", options: .backwards)?.lowerBound {
                     hostString = "\(proxyString[...queryMarkIndex])"
-                    queryString = "\(proxyString[...queryMarkIndex])"
+                    let queryMarkIndex_successor = proxyString.index(queryMarkIndex, offsetBy: 1)
+                    queryString = "\(proxyString[queryMarkIndex_successor...])"
                 }
                 if let hostSlashIndex = hostString.range(of: "/", options: .backwards)?.lowerBound {
                     hostString = "\(hostString[...hostSlashIndex])"
