@@ -123,5 +123,4 @@ class LogDetailViewController: UIViewController {
         v.isHidden = true
         return v
     }()
-    
 }

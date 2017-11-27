@@ -58,7 +58,7 @@ public final class RuleSet: BaseModel {
     }
 
     public func validate(inRealm realm: Realm) throws {
-        guard name.characters.count > 0 else {
+        guard name.count > 0 else {
             throw RuleSetError.EmptyName
         }
     }
@@ -99,13 +99,11 @@ public final class RuleSet: BaseModel {
 }
 
 extension RuleSet {
-
     /*
     public override static func indexedProperties() -> [String] {
         return ["name"]
     }
-     */
-    
+ */
 }
 
 extension RuleSet {

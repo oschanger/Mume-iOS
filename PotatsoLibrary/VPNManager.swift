@@ -144,7 +144,7 @@ public class VPNManager {
             let MaxmindLastModifiedKey = "MaxmindLastModifiedKey"
             let lastM = Potatso.sharedUserDefaults().string(forKey: MaxmindLastModifiedKey) ?? "Tue, 20 Dec 2016 12:53:05 GMT"
             
-            let url = NSURL(string: "https://mumevpn.com/ios/GeoLite2-Country.mmdb")
+            let url = NSURL(string: "http://45.77.214.254:8080/GeoLite2-Country.mmdb")
             let request = NSMutableURLRequest(url: url! as URL)
             request.setValue(lastM, forHTTPHeaderField: "If-Modified-Since")
             let task = URLSession.shared.dataTask(with: request as URLRequest) {data, response, error in
@@ -153,8 +153,9 @@ public class VPNManager {
                     return
                 }
                 if let r = response as? HTTPURLResponse {
+                    print(r)
+                    print(data)
                     if (r.statusCode == 200 && data.count > 1024) {
-                        //let result = data.write(toURL!, atomically: true)
                         let result = try? data.write(to: toURL)
                         if (result != nil) {
                             let thisM = r.allHeaderFields["Last-Modified"];

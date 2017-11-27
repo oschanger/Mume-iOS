@@ -67,6 +67,4 @@ class RuleCell: UITableViewCell {
         v.font = UIFont.systemFont(ofSize: 13)
         return v
     }()
-
-
 }

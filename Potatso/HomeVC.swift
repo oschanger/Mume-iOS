@@ -272,15 +272,14 @@ class HomeVC: FormViewController, UINavigationControllerDelegate, HomePresenterP
     }
 
     // MARK: - TableView
-
-    func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
+    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
         if indexPath.section == ruleSetSection.index && indexPath.row < presenter.group.ruleSets.count {
             return true
         }
         return false
     }
 
-    func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: IndexPath) {
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             do {
                 try defaultRealm.write {
@@ -294,7 +293,7 @@ class HomeVC: FormViewController, UINavigationControllerDelegate, HomePresenterP
         }
     }
 
-    func tableView(tableView: UITableView, editingStyleForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCellEditingStyle {
+    override func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCellEditingStyle {
         return .delete
     }
 
@@ -373,7 +372,7 @@ extension VPNStatus {
             if (Settings.shared().startTime) != nil {
                 let flags = NSCalendar.Unit.init(rawValue: UInt.max)
                 //let difference = NSCalendar.current.component(flags, from: time)
-               // let difference = NSCalendar.current.dateComponents(flags, from: time, to: Date())
+                //let difference = NSCalendar.current.dateComponents(flags, from: time, to: Date())
                 //let difference = NSCalendar.currentCalendar.components(flags, fromDate: time, toDate: Date(), options: NSCalendar.Options.MatchFirst)
                 let f = DateComponentsFormatter()
                 f.unitsStyle = .abbreviated

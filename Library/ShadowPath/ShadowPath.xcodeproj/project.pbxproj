@@ -1499,6 +1499,7 @@
 					};
 					B8DEFD7A1CE9C923003FC706 = {
 						CreatedOnToolsVersion = 7.3;
+						LastSwiftMigration = 0910;
 					};
 				};
 			};
@@ -1832,6 +1833,7 @@
 		B8DEFD841CE9C923003FC706 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEFINES_MODULE = YES;
@@ -1863,6 +1865,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.touchingapp.ShadowPath;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 3.0;
 				USER_HEADER_SEARCH_PATHS = "";
 			};
 			name = Debug;
@@ -1870,6 +1874,7 @@
 		B8DEFD851CE9C923003FC706 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -1900,6 +1905,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.touchingapp.ShadowPath;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 3.0;
 				USER_HEADER_SEARCH_PATHS = "";
 			};
 			name = Release;

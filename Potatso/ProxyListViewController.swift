@@ -10,6 +10,7 @@ import Foundation
 import PotatsoModel
 import Cartography
 import Eureka
+import MMDB_Swift
 
 private let rowHeight: CGFloat = 107
 private let kProxyCellIdentifier = "proxy"
@@ -22,6 +23,8 @@ class ProxyListViewController: FormViewController {
     let allowNone: Bool
     let chooseCallback: ((Proxy?) -> Void)?
 
+    let db = MMDB()
+    
     init(allowNone: Bool = false, chooseCallback: ((Proxy?) -> Void)? = nil) {
         self.chooseCallback = chooseCallback
         self.allowNone = allowNone
@@ -69,8 +72,13 @@ class ProxyListViewController: FormViewController {
             section
                 <<< ProxyRow () {
                     $0.value = proxy
+                    $0.cellStyle = UITableViewCellStyle.subtitle
+                    if let country = db?.lookup((proxy?.host)!) {
+                        print(country.isoCode)
+                    }
                 }.cellSetup({ (cell, row) -> () in
-                    cell.selectionStyle = .none
+                    cell.accessoryType = .disclosureIndicator
+                    cell.selectionStyle = .default
                 }).onCellSelection({ [unowned self] (cell, row) in
                     cell.setSelected(false, animated: true)
                     let proxy = row.value
@@ -93,6 +101,7 @@ class ProxyListViewController: FormViewController {
                     <<< ProxyRow () {
                             $0.value = proxy
                         }.cellSetup({ (cell, row) -> () in
+                            cell.accessoryType = .disclosureIndicator
                             cell.selectionStyle = .none
                         }).onCellSelection({ [weak self] (cell, row) in
                             cell.setSelected(false, animated: true)
@@ -112,7 +121,8 @@ class ProxyListViewController: FormViewController {
             form +++ cloudSection
         }
         form.delegate = self
-        tableView?.reloadData()
+        tableView.setEditing(false, animated: false)
+        tableView.reloadData()
     }
 
     func showProxyConfiguration(proxy: Proxy?) {
@@ -120,26 +130,26 @@ class ProxyListViewController: FormViewController {
         navigationController?.pushViewController(vc, animated: true)
     }
 
-    func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
+    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
         if allowNone && indexPath.row == 0 {
             return false
         }
         return true
     }
 
-    func tableView(tableView: UITableView, editingStyleForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCellEditingStyle {
+    override func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCellEditingStyle {
         if indexPath.section == 0 {
             return .delete
         }
         return .none
     }
-
-    func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: IndexPath) {
+    
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             guard indexPath.row < proxies.count, let item = (form[indexPath] as? ProxyRow)?.value else {
                 return
             }
- 
+            
             do {
                 try DBUtils.hardDelete(id: item.uuid, type: Proxy.self)
                 proxies.remove(at: indexPath.row)
@@ -150,7 +160,7 @@ class ProxyListViewController: FormViewController {
             }
         }
     }
-
+    
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         tableView?.tableFooterView = UIView()

@@ -31,13 +31,13 @@ struct API {
         }
     }
 
-    static func getRuleSets(callback: (Alamofire.DefaultDataResponse) -> Void) {
-        /*
+    static func getRuleSets(callback: @escaping (DataResponse<String>) -> Void) {
         let lang = NSLocale.preferredLanguages[0]
         let versionCode: AnyObject? = Bundle.main.infoDictionary!["CFBundleShortVersionString"] as AnyObject
         NSLog("API.getRuleSets ===> lang: \(lang), version: \(String(describing: versionCode))")
-        Alamofire.request(.GET, Path.RuleSets.url, parameters: ["lang": lang, "version": versionCode!]).responseArray(completionHandler: callback)
- */
+        //Alamofire.request("https://raw.githubusercontent.com/h2y/Shadowrocket-ADBlock-Rules/master/sr_top500_banlist_ad.conf").responseData(completionHandler: callback)
+        Alamofire.request("https://raw.githubusercontent.com/h2y/Shadowrocket-ADBlock-Rules/master/sr_top500_banlist_ad.conf").responseString(completionHandler: callback)
+        //Alamofire.request(.GET, Path.RuleSets.url, parameters: ["lang": lang, "version": versionCode!]).responseArray(completionHandler: callback)
     }
     
     static func getProxySets(callback: ([Dictionary<String, String>]) -> Void) {

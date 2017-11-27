@@ -13,7 +13,6 @@ import CloudKit
 import Async
 import RealmSwift
 import Realm
-
 class DataInitializer: NSObject, AppLifeCycleProtocol {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey : Any]? = nil) -> Bool {

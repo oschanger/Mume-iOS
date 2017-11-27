@@ -69,6 +69,7 @@ public class Proxy: BaseModel {
     @objc public dynamic var typeRaw = ProxyType.Shadowsocks.rawValue
     @objc public dynamic var host = ""
     @objc public dynamic var port = 0
+    @objc public dynamic var country = ""
     @objc public dynamic var authscheme: String?  // method in SS
     @objc public dynamic var user: String?
     @objc public dynamic var password: String?
@@ -223,23 +224,14 @@ extension Proxy {
                 }
                 var hostString: String = proxyString
                 var queryString: String = ""
-                
-                /*
-                if let queryMarkIndex = proxyString.rangeOfString("?", options: .BackwardsSearch)?.startIndex {
-                    hostString = proxyString.substringToIndex(queryMarkIndex)
-                    queryString = proxyString.substringFromIndex(queryMarkIndex.successor())
-                }
-                if let hostSlashIndex = hostString.rangeOfString("/", options: .BackwardsSearch)?.startIndex {
-                    hostString = hostString.substringToIndex(hostSlashIndex)
-                }
-                 */
+
                 if let queryMarkIndex = proxyString.range(of: "?", options: .backwards)?.lowerBound {
                     hostString = "\(proxyString[...queryMarkIndex])"
                     let queryMarkIndex_successor = proxyString.index(queryMarkIndex, offsetBy: 1)
                     queryString = "\(proxyString[queryMarkIndex_successor...])"
                 }
                 if let hostSlashIndex = hostString.range(of: "/", options: .backwards)?.lowerBound {
-                    hostString = "\(hostString[...hostSlashIndex])"
+                    hostString = "\(hostString[..<hostSlashIndex])"
                 }
                 let hostComps = hostString.components(separatedBy: ":")
                 guard hostComps.count == 6 else {
@@ -293,7 +285,31 @@ extension Proxy {
             self.authscheme = encryption
             self.type = type
         }
+        getCountry()
         try validate()
+    }
+    
+    private func getCountry() -> String {
+        
+    }
+    
+    private func getHostIP() -> String {
+        if self.host.count > 0 {
+            let host = CFHostCreateWithName(nil,self.host as CFString).takeRetainedValue()
+            CFHostStartInfoResolution(host, .addresses, nil)
+            var success: DarwinBoolean = false
+            if let addresses = CFHostGetAddressing(host, &success)?.takeUnretainedValue() as NSArray?,
+                let theAddress = addresses.firstObject as? NSData {
+                var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+                if getnameinfo(theAddress.bytes.assumingMemoryBound(to: sockaddr.self), socklen_t(theAddress.length),
+                               &hostname, socklen_t(hostname.count), nil, 0, NI_NUMERICHOST) == 0 {
+                    let numAddress = String(cString: hostname)
+                    print(numAddress)
+                    return numAddress
+                }
+            }
+        }
+        return self.host
     }
 
     private func base64DecodeIfNeeded(proxyString: String) -> String? {

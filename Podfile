@@ -38,6 +38,7 @@ target "Potatso" do
     pod 'PSOperations', '~> 4.0.0'
     pod 'Fabric'
     pod 'Crashlytics'
+    pod "MMDB-Swift"    
     tunnel
     library
     socket
